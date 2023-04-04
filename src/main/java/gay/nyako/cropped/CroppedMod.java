@@ -53,7 +53,7 @@ public class CroppedMod implements ModInitializer {
 			this.setSuccess(true);
 			World world = pointer.getWorld();
 			BlockPos blockPos = pointer.getPos().offset(pointer.getBlockState().get(DispenserBlock.FACING));
-			if (pointer.getBlockState().getBlock() == Blocks.AIR &&
+			if (world.getBlockState(blockPos).isAir() &&
 					world.getBlockState(blockPos.down()).getBlock() == Blocks.FARMLAND
 			) {
 				Block block = Block.getBlockFromItem(stack.getItem());
