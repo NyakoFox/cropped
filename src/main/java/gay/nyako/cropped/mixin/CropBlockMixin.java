@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class CropBlockMixin {
 
     @Inject(method = "getAvailableMoisture(Lnet/minecraft/block/Block;Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)F", at = @At("RETURN"), cancellable = true)
-    private static void injected(Block block, BlockView world, BlockPos pos, CallbackInfoReturnable<Float> cir) {
+    private static void cropped$rainWateringMixin(Block block, BlockView world, BlockPos pos, CallbackInfoReturnable<Float> cir) {
         if (CroppedMod.CONFIG.rainWatering && world instanceof World worldInstance && worldInstance.isRaining())
         {
             cir.setReturnValue(cir.getReturnValue() * CroppedMod.CONFIG.rainWateringMultiplier);

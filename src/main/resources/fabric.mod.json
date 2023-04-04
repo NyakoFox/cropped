@@ -24,7 +24,7 @@
     "modmenu": [ "gay.nyako.cropped.ModMenuIntegration" ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "cropped.mixins.json"
   ],
 
   "depends": {
