@@ -1,26 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "cropped",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Cropped",
+  "description": "A simple server-side mod which improves crops.",
   "authors": [
-    "Me!"
+    "Nyako"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://nyako.gay/",
+    "sources": "https://github.com/NyakoFox/cropped"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/cropped/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
-    ]
+      "gay.nyako.cropped.CroppedMod"
+    ],
+    "modmenu": [ "gay.nyako.cropped.ModMenuIntegration" ]
   },
   "mixins": [
     "modid.mixins.json"
