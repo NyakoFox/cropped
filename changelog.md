@@ -1,1 +1,1 @@
-Cleanup related to mixins
+Fix mixin crash on startup
