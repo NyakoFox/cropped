@@ -1,1 +1,1 @@
-Initial release
+Cleanup related to mixins
