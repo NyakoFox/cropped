@@ -5,12 +5,9 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.*;
-import net.minecraft.block.dispenser.DispenserBehavior;
 import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.block.dispenser.ItemDispenserBehavior;
-import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BoneMealItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -20,14 +17,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CroppedMod implements ModInitializer {
@@ -51,8 +44,8 @@ public class CroppedMod implements ModInitializer {
 	ItemDispenserBehavior itemDispenserBehavior = new FallibleItemDispenserBehavior() {
 		protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
 			this.setSuccess(true);
-			World world = pointer.getWorld();
-			BlockPos blockPos = pointer.getPos().offset(pointer.getBlockState().get(DispenserBlock.FACING));
+			World world = pointer.world();
+			BlockPos blockPos = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
 			if (world.getBlockState(blockPos).isAir() &&
 					world.getBlockState(blockPos.down()).getBlock() == Blocks.FARMLAND
 			) {
@@ -83,7 +76,7 @@ public class CroppedMod implements ModInitializer {
 
 		if (block instanceof CropBlock cropBlock) {
 			if (cropBlock.isMature(blockState)) {
-				cropBlock.onUse(blockState, world, hitResult.getBlockPos(), player, hand, hitResult);
+				cropBlock.onUse(blockState, world, hitResult.getBlockPos(), player, hitResult);
 
 				if (!world.isClient())
 				{
