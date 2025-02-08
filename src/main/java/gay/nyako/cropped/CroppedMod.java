@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.*;
 import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.block.dispenser.ItemDispenserBehavior;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -18,9 +19,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CroppedMod implements ModInitializer {
@@ -29,8 +33,14 @@ public class CroppedMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		UseBlockCallback.EVENT.register(CroppedMod::onBlockUse);
-
+		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+    		try {
+      			return onBlockUse(player, world, hand, hitResult);
+    		} catch (InvocationTargetException | IllegalAccessException e) {
+        		// handle the exceptions
+        		return ActionResult.FAIL;
+    		}
+		});
 		if (CONFIG.dispenserPlanting) {
 			DispenserBlock.registerBehavior(Items.CARROT, itemDispenserBehavior);
 			DispenserBlock.registerBehavior(Items.POTATO, itemDispenserBehavior);
@@ -65,7 +75,7 @@ public class CroppedMod implements ModInitializer {
 		}
 	};
 
-	private static ActionResult onBlockUse(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
+	private static ActionResult onBlockUse(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) throws InvocationTargetException, IllegalAccessException {
 		if (!CONFIG.rightClickHarvest || player.isSneaking() || player.isSpectator()) {
 			return ActionResult.PASS;
 		}
@@ -75,15 +85,27 @@ public class CroppedMod implements ModInitializer {
 		var handStack = player.getStackInHand(hand);
 
 		if (block instanceof CropBlock cropBlock) {
+			MinecraftClient mc = MinecraftClient.getInstance();
 			if (cropBlock.isMature(blockState)) {
 				cropBlock.onUse(blockState, world, hitResult.getBlockPos(), player, hitResult);
 
 				if (!world.isClient())
 				{
-					world.setBlockState(hitResult.getBlockPos(), cropBlock.withAge(0));
 					// By default, getPickStack calls the protected function getSeedsItem
 					// So let's hope a mod doesn't change that...
-					Item seed = cropBlock.getPickStack(world, hitResult.getBlockPos(), blockState).getItem();
+					// This no longer works as getPickStack is now protected
+					// Item seed = cropBlock.getPickStack(world, hitResult.getBlockPos(), blockState).getItem());
+					Method getPickStackMethod;
+					try {
+					    getPickStackMethod = CropBlock.class.getDeclaredMethod("getPickStack", WorldView.class, BlockPos.class, BlockState.class, boolean.class);
+					    getPickStackMethod.setAccessible(true);
+					} catch (NoSuchMethodException e) {
+						LOGGER.atError().log("Could not find getPickStack method");
+						return ActionResult.FAIL;
+					}
+					world.setBlockState(hitResult.getBlockPos(), cropBlock.withAge(0));
+					
+					Item seed = ((ItemStack)getPickStackMethod.invoke(cropBlock, world, hitResult.getBlockPos(), blockState, false)).getItem();
 					AtomicBoolean removedSeed = new AtomicBoolean(false);
 
 					Block.getDroppedStacks(blockState, (ServerWorld) world, hitResult.getBlockPos(), null, player, handStack).forEach(stack -> {
